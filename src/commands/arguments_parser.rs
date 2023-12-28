@@ -1,5 +1,6 @@
-use clap::{Parser, ValueEnum};
+use clap::{ArgAction, Parser, ValueEnum};
 use core::fmt;
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -11,6 +12,17 @@ use core::fmt;
 pub struct Cli {
     #[arg(index = 1, value_enum, default_value = "list")]
     pub action: Action,
+
+    #[arg(
+        short,
+        long,
+        default_value = ".",
+        help = "default is the current directory"
+    )]
+    pub dir_path: PathBuf,
+
+    #[arg(short, long, action=ArgAction::SetFalse)]
+    pub include_hidden: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]

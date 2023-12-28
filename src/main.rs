@@ -1,15 +1,25 @@
+mod actions;
 mod commands;
-use clap::Parser;
+
+use actions::list;
 use commands::arguments_parser::{Action, Cli};
 
-fn perform_action(aciton: Action) {
-    match aciton {
-        Action::List => println!("processing {}", aciton),
-        Action::Organize => println!("processing {}", aciton),
-    }
-}
+use clap::Parser;
 
 fn main() {
     let args = Cli::parse();
-    perform_action(args.action);
+    perform_action(&args);
+}
+
+fn perform_action(
+    Cli {
+        action,
+        dir_path,
+        include_hidden,
+    }: &Cli,
+) {
+    match action {
+        Action::List => list::list_duplicates(&dir_path, &include_hidden),
+        Action::Organize => println!("processing {}", action),
+    }
 }
