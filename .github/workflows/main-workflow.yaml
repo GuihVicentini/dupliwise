@@ -9,6 +9,12 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
+      # Install open ssl for windows cuz it doesn't come with it.
+      - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+        if: runner.os == 'Windows'
+      - run: vcpkg install openssl:x64-windows-static-md
+        if: runner.os == 'Windows'
+
       - uses: actions/checkout@v4
       - name: Build
         run: cargo build --release --verbose
