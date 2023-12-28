@@ -1,0 +1,63 @@
+name: CI/CD Pipeline
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: dupliwise on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --release --verbose
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: dupliwise-${{ matrix.os }}
+          path: ${{ github.workspace }}/target/release/dupliwise*
+          if-no-files-found: error
+
+  tag:
+    name: Create tag and Release
+    needs: [build]
+    if: ${{ github.event_name == 'push' && github.event.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          path: bin
+
+      - name: Display structure of downloaded files
+        run: ls -alR
+        working-directory: bin/
+
+      - name: Compress files
+        run: |
+          ls -al
+          for folder in */; do 
+            folder_name=$(basename "$folder") 
+            tar -czf "${folder_name}.tar.gz" --exclude=*.args "$folder_name" && echo "Created ${folder_name}.tar.gz" 
+          done
+        working-directory: bin/
+
+      - name: Publish Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "bin/*.tar.gz"
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
