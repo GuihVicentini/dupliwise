@@ -23,6 +23,9 @@ pub struct Cli {
 
     #[arg(short, long, action=ArgAction::SetFalse)]
     pub include_hidden: bool,
+
+    #[arg(short, long, action=ArgAction::SetFalse)]
+    pub recursive: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]

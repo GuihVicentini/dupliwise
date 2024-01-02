@@ -4,11 +4,17 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
-pub fn list_duplicates(dir_path: &PathBuf, include_hidden: &bool) {
+pub fn list_duplicates(dir_path: &PathBuf, include_hidden: &bool, is_recursive: bool) {
     println!("Reading files from directory: {:?}", dir_path);
 
-    let file_map = find_duplicates(&dir_path.as_path(), !include_hidden);
+    let file_map: HashMap<String, Vec<PathBuf>> = if is_recursive {
+        find_duplicates_recursivly(dir_path, !include_hidden)
+    } else {
+        find_duplicates(&dir_path.as_path(), !include_hidden)
+    };
+
     for (file_hash, files) in file_map {
         if files.len() > 1 {
             println!("File hash {}", file_hash);
@@ -17,6 +23,30 @@ pub fn list_duplicates(dir_path: &PathBuf, include_hidden: &bool) {
             }
         }
     }
+}
+
+fn find_duplicates_recursivly(root_dir: &Path, is_hidden: bool) -> HashMap<String, Vec<PathBuf>> {
+    WalkDir::new(root_dir)
+        .into_iter()
+        .flat_map(|entries| entries)
+        .filter(|entry| {
+            entry.path().is_file()
+                && entry.file_name().to_string_lossy().starts_with(".") == is_hidden
+        })
+        .filter_map(|entry| {
+            let file_path = entry.into_path();
+            calculate_sha256(&file_path).map(|file_content_hash| (file_content_hash, file_path))
+        })
+        .fold(
+            HashMap::new(),
+            |mut file_map, (file_content_hash, file_path)| {
+                file_map
+                    .entry(file_content_hash)
+                    .or_insert_with(Vec::new)
+                    .push(file_path);
+                file_map
+            },
+        )
 }
 
 fn find_duplicates(directory: &Path, is_hidden: bool) -> HashMap<String, Vec<PathBuf>> {

@@ -16,10 +16,11 @@ fn perform_action(
         action,
         dir_path,
         include_hidden,
+        recursive,
     }: &Cli,
 ) {
     match action {
-        Action::List => list::list_duplicates(&dir_path, &include_hidden),
+        Action::List => list::list_duplicates(&dir_path, &include_hidden, !recursive),
         Action::Organize => println!("processing {}", action),
     }
 }
