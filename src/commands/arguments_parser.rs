@@ -19,13 +19,13 @@ pub struct Cli {
         default_value = ".",
         help = "default is the current directory"
     )]
-    pub dir_path: PathBuf,
+    pub path: PathBuf,
 
-    #[arg(short, long, action=ArgAction::SetFalse)]
+    #[arg(short, long, action=ArgAction::SetTrue)]
     pub include_hidden: bool,
 
-    #[arg(short, long, action=ArgAction::SetFalse)]
-    pub recursive: bool,
+    #[arg(short, long, default_value_t = 1)]
+    pub depth: usize,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
