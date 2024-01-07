@@ -2,6 +2,8 @@
 
 List and Organise duplicated files in a given directory.
 
+## List example
+
 ```bash
 Usage: dupliwise [OPTIONS] [ACTION]
 
@@ -15,3 +17,4 @@ Options:
   -h, --help            Print help
   -V, --version         Print version
 ```
+
